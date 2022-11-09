@@ -48,7 +48,7 @@ namespace autorepairProj.Controllers
         // GET: Mechanics/Create
         public IActionResult Create()
         {
-            ViewData["QualificationType"] = new SelectList(_context.Qualifications, "QualificationId", "QualificationId");
+            ViewData["QualificationType"] = new SelectList(_context.Qualifications, "QualificationId", "Name");
             return View();
         }
 
@@ -65,7 +65,7 @@ namespace autorepairProj.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["QualificationType"] = new SelectList(_context.Qualifications, "QualificationId", "QualificationId", mechanic.QualificationType);
+            ViewData["QualificationType"] = new SelectList(_context.Qualifications, "QualificationId", "Name", mechanic.QualificationType);
             return View(mechanic);
         }
 
@@ -82,7 +82,7 @@ namespace autorepairProj.Controllers
             {
                 return NotFound();
             }
-            ViewData["QualificationType"] = new SelectList(_context.Qualifications, "QualificationId", "QualificationId", mechanic.QualificationType);
+            ViewData["QualificationType"] = new SelectList(_context.Qualifications, "QualificationId", "Name", mechanic.QualificationType);
             return View(mechanic);
         }
 

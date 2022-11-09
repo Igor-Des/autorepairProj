@@ -7,10 +7,10 @@ namespace autorepairProj.Models
     public class Qualification
     {
         [Key]
-        [Display(Name = "Код должности")]
+        [Display(Name = "Код")]
         public int QualificationId { get; set; }
 
-        [Display(Name = "Наименование должности")]
+        [Display(Name = "Наименование")]
         public string Name { get; set; }
 
         [Display(Name = "Изначальная зарплата")]

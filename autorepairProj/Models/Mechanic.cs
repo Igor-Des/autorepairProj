@@ -8,19 +8,19 @@ namespace autorepairProj.Models
     public class Mechanic
     {
         [Key]
-        [Display(Name = "Код автомеханика")]
+        [Display(Name = "Код")]
         public int MechanicId { get; set; }
 
-        [Display(Name = "Имя автомеханика")]
+        [Display(Name = "Имя")]
         public string FirstName { get; set; }
 
-        [Display(Name = "Фамилия автомеханика")]
+        [Display(Name = "Фамилия")]
         public string MiddleName { get; set; }
 
-        [Display(Name = "Отчество автомеханика")]
+        [Display(Name = "Отчество")]
         public string LastName { get; set; }
 
-        [Display(Name = "Код должности автомеханика")]
+        [Display(Name = "Код должности")]
         [ForeignKey("Qualification")]
         public int QualificationType { get; set; }
 
