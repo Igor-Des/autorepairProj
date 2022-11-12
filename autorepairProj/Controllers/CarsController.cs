@@ -48,7 +48,7 @@ namespace autorepairProj.Controllers
         // GET: Cars/Create
         public IActionResult Create()
         {
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "OwnerId");
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "Phone");
             return View();
         }
 
@@ -65,7 +65,7 @@ namespace autorepairProj.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "OwnerId", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "Phone", car.OwnerId);
             return View(car);
         }
 
@@ -82,7 +82,7 @@ namespace autorepairProj.Controllers
             {
                 return NotFound();
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "OwnerId", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "Phone", car.OwnerId);
             return View(car);
         }
 
@@ -118,7 +118,7 @@ namespace autorepairProj.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "OwnerId", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "Phone", car.OwnerId);
             return View(car);
         }
 

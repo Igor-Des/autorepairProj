@@ -7,6 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using autorepairProj.Data;
 using autorepairProj.Models;
+using X.PagedList;
+using autorepairProj.Services;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using autorepairProj.ViewModels;
+using autorepairProj.Infrastructure;
 
 namespace autorepairProj.Controllers
 {
@@ -20,10 +25,51 @@ namespace autorepairProj.Controllers
         }
 
         // GET: Mechanics
-        public async Task<IActionResult> Index()
+        [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 258)]
+        public ActionResult Index(SortState sortOrder, string currentFilter1,
+            string currentFilter2, string searchQualificationName, string searchExperience, int? page)
         {
-            var autorepairContext = _context.Mechanics.Include(m => m.Qualification);
-            return View(await autorepairContext.ToListAsync());
+            if (searchQualificationName != null || searchExperience != null || (searchQualificationName != null & searchExperience != null))
+            {
+                page = 1;
+            }
+            else
+            {
+                searchQualificationName = currentFilter1;
+                searchExperience = currentFilter2;
+            }
+
+            IEnumerable<MechanicViewModel> mechanicViewModel;
+            ViewBag.CurrentFilter1 = searchQualificationName;
+            ViewBag.CurrentFilter2 = searchExperience;
+            ICached<Mechanic> cachedMechanics = _context.GetService<ICached<Mechanic>>();
+
+            if (HttpContext.Session.Keys.Contains("mechanics"))
+            {
+                mechanicViewModel = HttpContext.Session.Get<IEnumerable<MechanicViewModel>>("mechanics");
+            }
+            else
+            {
+                List<Mechanic> mechanics = (List<Mechanic>)cachedMechanics.GetList("cachedMechanics");
+                mechanicViewModel = from m in mechanics
+                                      join qual in _context.Qualifications
+                                      on m.QualificationType equals qual.QualificationId                                      
+                                      select new MechanicViewModel
+                                      {
+                                          MechanicId = m.MechanicId,
+                                          FirstName = m.FirstName,
+                                          MiddleName = m.MiddleName,
+                                          LastName = m.LastName,
+                                          QualificationName = qual.Name,
+                                          Experience = m.Experience
+                                      };
+            }
+            mechanicViewModel = _SearchExperience(_SearchQualificationName(mechanicViewModel, searchQualificationName), searchExperience);
+            ViewBag.CurrentSort = sortOrder;
+            mechanicViewModel = _Sort(mechanicViewModel, sortOrder);
+            int pageSize = 20;
+            int pageNumber = page ?? 1;
+            return View(mechanicViewModel.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Mechanics/Details/5
@@ -57,13 +103,14 @@ namespace autorepairProj.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MechanicId,FirstName,MiddleName,LastName,QualificationType,Experience")] Mechanic mechanic)
+        public async Task<ActionResult> Create([Bind("MechanicId,FirstName,MiddleName,LastName,QualificationType,Experience")] Mechanic mechanic)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(mechanic);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                _context.GetService<ICached<Mechanic>>().AddList("cachedMechanics");
+                return RedirectToAction("Index");
             }
             ViewData["QualificationType"] = new SelectList(_context.Qualifications, "QualificationId", "Name", mechanic.QualificationType);
             return View(mechanic);
@@ -91,7 +138,7 @@ namespace autorepairProj.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MechanicId,FirstName,MiddleName,LastName,QualificationType,Experience")] Mechanic mechanic)
+        public async Task<ActionResult> Edit(int id, [Bind("MechanicId,FirstName,MiddleName,LastName,QualificationType,Experience")] Mechanic mechanic)
         {
             if (id != mechanic.MechanicId)
             {
@@ -104,26 +151,19 @@ namespace autorepairProj.Controllers
                 {
                     _context.Update(mechanic);
                     await _context.SaveChangesAsync();
+                    _context.GetService<ICached<Mechanic>>().AddList("cachedMechanics");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MechanicExists(mechanic.MechanicId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
             ViewData["QualificationType"] = new SelectList(_context.Qualifications, "QualificationId", "QualificationId", mechanic.QualificationType);
             return View(mechanic);
         }
 
         // GET: Mechanics/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<ActionResult> Delete(int? id)
         {
             if (id == null)
             {
@@ -149,7 +189,51 @@ namespace autorepairProj.Controllers
             var mechanic = await _context.Mechanics.FindAsync(id);
             _context.Mechanics.Remove(mechanic);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            _context.GetService<ICached<Mechanic>>().AddList("cachedMechanics");
+            return RedirectToAction("Index");
+        }
+
+        private IEnumerable<MechanicViewModel> _SearchExperience(IEnumerable<MechanicViewModel> mechanics, string searchExperience)
+        {
+            if (!String.IsNullOrEmpty(searchExperience))
+            {
+                try
+                {
+                    if (Int32.Parse(searchExperience) > 0)
+                    {
+                        mechanics = mechanics.Where(m => m.Experience >= Int32.Parse(searchExperience));
+                    }
+                }
+                catch
+                {
+                    return mechanics;
+                }
+            }
+            return mechanics;
+        }
+
+        private IEnumerable<MechanicViewModel> _SearchQualificationName(IEnumerable<MechanicViewModel> mechanics, string QualificationName)
+        {
+            if (!String.IsNullOrEmpty(QualificationName))
+            {
+                mechanics = mechanics.Where(m => m.QualificationName.Contains(QualificationName));
+            }
+            return mechanics;
+        }
+
+        private IEnumerable<MechanicViewModel> _Sort(IEnumerable<MechanicViewModel> mechanics, SortState sortOrder)
+        {
+            ViewData["Qualification"] = sortOrder == SortState.QualificationMechanicAsc ? SortState.QualificationMechanicDesc : SortState.QualificationMechanicAsc;
+            ViewData["Experience"] = sortOrder == SortState.ExperienceMechanicAsc ? SortState.ExperienceMechanicDesc : SortState.ExperienceMechanicAsc;
+            mechanics = sortOrder switch
+            {
+                SortState.QualificationMechanicAsc => mechanics.OrderBy(m => m.QualificationName),
+                SortState.QualificationMechanicDesc => mechanics.OrderByDescending(m => m.QualificationName),
+                SortState.ExperienceMechanicAsc => mechanics.OrderBy(m => m.Experience),
+                SortState.ExperienceMechanicDesc => mechanics.OrderByDescending(m => m.Experience),
+                _ => mechanics.OrderBy(m => m.MechanicId),
+            };
+            return mechanics;
         }
 
         private bool MechanicExists(int id)

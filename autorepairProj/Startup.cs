@@ -1,5 +1,7 @@
 using autorepairProj.Data;
 using autorepairProj.Middleware;
+using autorepairProj.Models;
+using autorepairProj.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -34,7 +36,10 @@ namespace autorepairProj
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+
             services.AddSession();
+            services.AddScoped<ICached<Mechanic>, CachedMechanics>();
 
             services.AddMvc();
             services.AddControllersWithViews();
