@@ -7,6 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using autorepairProj.Data;
 using autorepairProj.Models;
+using autorepairProj.Services;
+using autorepairProj.ViewModels;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using X.PagedList;
+using autorepairProj.Infrastructure;
 
 namespace autorepairProj.Controllers
 {
@@ -20,11 +25,54 @@ namespace autorepairProj.Controllers
         }
 
         // GET: Payments
-        public async Task<IActionResult> Index()
+        public ActionResult Index(SortState sortOrder, string currentFilter1,
+            string currentFilter2, string searchProgressReport, string searchMechanicFIO, int? page)
         {
-            var autorepairContext = _context.Payments.Include(p => p.Car).Include(p => p.Mechanic);
-            return View(await autorepairContext.ToListAsync());
+            if (searchProgressReport != null || searchMechanicFIO != null || (searchProgressReport != null & searchMechanicFIO != null))
+            {
+                page = 1;
+            }
+            else
+            {
+                searchProgressReport = currentFilter1;
+                searchMechanicFIO = currentFilter2;
+            }
+
+            IEnumerable<PaymentViewModel> paymentViewModel;
+            ViewBag.CurrentFilter1 = searchProgressReport;
+            ViewBag.CurrentFilter2 = searchMechanicFIO;
+            ICached<Payment> cachedPayments = _context.GetService<ICached<Payment>>();
+
+            if (HttpContext.Session.Keys.Contains("cars"))
+            {
+                paymentViewModel = HttpContext.Session.Get<IEnumerable<PaymentViewModel>>("payments");
+            }
+            else
+            {
+                List<Payment> payments = (List<Payment>)cachedPayments.GetList("cachedPayments");
+                paymentViewModel = from p in payments
+                                   join c in _context.Cars
+                                   on p.CarId equals c.CarId
+                                   join m in _context.Mechanics
+                                   on p.MechanicId equals m.MechanicId
+                                   select new PaymentViewModel
+                                   {
+                                       PaymentId = p.PaymentId,
+                                       StateNumberCar = c.StateNumber,
+                                       MechanicFIO = m.FirstName + " " + m.MiddleName + " " + m.LastName,
+                                       Date = p.Date,
+                                       Cost = p.Cost,
+                                       ProgressReport = p.ProgressReport
+                                   };
+            }
+            paymentViewModel = _SearchProgressReport(_SearchMechanicFIO(paymentViewModel, searchMechanicFIO), searchProgressReport);
+            ViewBag.CurrentSort = sortOrder;
+            paymentViewModel = _Sort(paymentViewModel, sortOrder);
+            int pageSize = 20;
+            int pageNumber = page ?? 1;
+            return View(paymentViewModel.ToPagedList(pageNumber, pageSize));
         }
+
 
         // GET: Payments/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -156,6 +204,45 @@ namespace autorepairProj.Controllers
             _context.Payments.Remove(payment);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        private IEnumerable<PaymentViewModel> _SearchProgressReport(IEnumerable<PaymentViewModel> payments, string progressReport)
+        {
+            try
+            {
+                if (!String.IsNullOrEmpty(progressReport))
+                {
+                    payments = payments.Where(p => p.ProgressReport.Contains(progressReport));
+                }
+            }
+            catch
+            {
+            }
+            return payments;
+        }
+
+        private IEnumerable<PaymentViewModel> _SearchMechanicFIO(IEnumerable<PaymentViewModel> payments, string mechanicFIO)
+        {
+            if (!String.IsNullOrEmpty(mechanicFIO))
+            {
+                payments = payments.Where(p => p.MechanicFIO.Contains(mechanicFIO));
+            }
+            return payments;
+        }
+
+        private IEnumerable<PaymentViewModel> _Sort(IEnumerable<PaymentViewModel> payments, SortState sortOrder)
+        {
+            ViewData["Cost"] = sortOrder == SortState.PaymentCostAsc ? SortState.PaymentCostDesc : SortState.PaymentCostAsc;
+            ViewData["Date"] = sortOrder == SortState.PaymentDateAsc ? SortState.PaymentDateDesc : SortState.PaymentDateAsc;
+            payments = sortOrder switch
+            {
+                SortState.PaymentCostAsc => payments.OrderBy(p => p.Cost),
+                SortState.PaymentCostDesc => payments.OrderByDescending(p => p.Cost),
+                SortState.PaymentDateAsc => payments.OrderBy(p => p.Date),
+                SortState.PaymentDateDesc => payments.OrderByDescending(p => p.Date),
+                _ => payments.OrderBy(p => p.PaymentId),
+            };
+            return payments;
         }
 
         private bool PaymentExists(int id)

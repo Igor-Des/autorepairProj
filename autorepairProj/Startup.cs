@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -39,14 +40,18 @@ namespace autorepairProj
 
 
             services.AddSession();
+            services.AddScoped<ICached<Qualification>, CachedQualification>();
+            services.AddScoped<ICached<Owner>, CachedOwners>();
             services.AddScoped<ICached<Mechanic>, CachedMechanics>();
+            services.AddScoped<ICached<Car>, CachedCars>();
+            services.AddScoped<ICached<Payment>, CachedPayments>();
 
             services.AddMvc();
             services.AddControllersWithViews();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AutorepairContext _context)
         {
             if (env.IsDevelopment())
             {
@@ -65,10 +70,23 @@ namespace autorepairProj
             app.UseSession();
             // добавляем компонента miidleware по инициализации базы данных
             app.UseDbInitializer();
+            DbInitializer.Initialize(_context); // ???
 
             app.UseRouting();
 
+
+            // использование Identity
+            app.UseAuthentication();
             app.UseAuthorization();
+
+
+
+            _context.GetService<ICached<Qualification>>().AddList("Qualification");
+            _context.GetService<ICached<Owner>>().AddList("Owner");
+            _context.GetService<ICached<Mechanic>>().AddList("Mechanic");
+            _context.GetService<ICached<Car>>().AddList("Car");
+            _context.GetService<ICached<Payment>>().AddList("Payment");
+
 
             app.UseEndpoints(endpoints =>
             {

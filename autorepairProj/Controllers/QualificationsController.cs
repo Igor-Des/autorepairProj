@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using autorepairProj.Data;
 using autorepairProj.Models;
+using Microsoft.VisualBasic.FileIO;
+using autorepairProj.Services;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using X.PagedList;
 
 namespace autorepairProj.Controllers
 {
@@ -20,9 +24,13 @@ namespace autorepairProj.Controllers
         }
 
         // GET: Qualifications
-        public async Task<IActionResult> Index()
+        [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 258)]
+        public IActionResult Index(int? page)
         {
-            return View(await _context.Qualifications.ToListAsync());
+            var qualifications = _context.GetService<ICached<Qualification>>().GetList("Qualification");
+            int pageSize = 15;
+            int pageNumber = page ?? 1;
+            return View(qualifications.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Qualifications/Details/5
@@ -60,6 +68,7 @@ namespace autorepairProj.Controllers
             {
                 _context.Add(qualification);
                 await _context.SaveChangesAsync();
+                _context.GetService<ICached<Qualification>>().AddList("Qualification");
                 return RedirectToAction(nameof(Index));
             }
             return View(qualification);
@@ -99,6 +108,7 @@ namespace autorepairProj.Controllers
                 {
                     _context.Update(qualification);
                     await _context.SaveChangesAsync();
+                    _context.GetService<ICached<Qualification>>().AddList("Qualification");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -142,6 +152,7 @@ namespace autorepairProj.Controllers
             var qualification = await _context.Qualifications.FindAsync(id);
             _context.Qualifications.Remove(qualification);
             await _context.SaveChangesAsync();
+            _context.GetService<ICached<Qualification>>().AddList("Qualification");
             return RedirectToAction(nameof(Index));
         }
 

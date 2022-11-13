@@ -18,6 +18,7 @@ namespace autorepairProj.Controllers
             _logger = logger;
         }
 
+        [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 258)]
         public IActionResult Index()
         {
             return View();

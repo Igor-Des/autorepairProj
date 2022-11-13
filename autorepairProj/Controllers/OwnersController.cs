@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using autorepairProj.Data;
 using autorepairProj.Models;
+using autorepairProj.Services;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using X.PagedList;
 
 namespace autorepairProj.Controllers
 {
@@ -20,9 +23,13 @@ namespace autorepairProj.Controllers
         }
 
         // GET: Owners
-        public async Task<IActionResult> Index()
+        [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 258)]
+        public IActionResult Index(int? page)
         {
-            return View(await _context.Owners.ToListAsync());
+            var owners = _context.GetService<ICached<Owner>>().GetList("Owner");
+            int pageSize = 15;
+            int pageNumber = page ?? 1;
+            return View(owners.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Owners/Details/5
@@ -60,6 +67,7 @@ namespace autorepairProj.Controllers
             {
                 _context.Add(owner);
                 await _context.SaveChangesAsync();
+                _context.GetService<ICached<Owner>>().AddList("Owner");
                 return RedirectToAction(nameof(Index));
             }
             return View(owner);
@@ -99,6 +107,7 @@ namespace autorepairProj.Controllers
                 {
                     _context.Update(owner);
                     await _context.SaveChangesAsync();
+                    _context.GetService<ICached<Owner>>().AddList("Owner");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -142,6 +151,7 @@ namespace autorepairProj.Controllers
             var owner = await _context.Owners.FindAsync(id);
             _context.Owners.Remove(owner);
             await _context.SaveChangesAsync();
+            _context.GetService<ICached<Owner>>().AddList("Owner");
             return RedirectToAction(nameof(Index));
         }
 

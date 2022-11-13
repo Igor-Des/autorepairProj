@@ -7,6 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using autorepairProj.Data;
 using autorepairProj.Models;
+using autorepairProj.Services;
+using autorepairProj.ViewModels;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using X.PagedList;
+using autorepairProj.Infrastructure;
 
 namespace autorepairProj.Controllers
 {
@@ -20,10 +25,55 @@ namespace autorepairProj.Controllers
         }
 
         // GET: Cars
-        public async Task<IActionResult> Index()
+        [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 258)]
+        public ActionResult Index(SortState sortOrder, string currentFilter1,
+            string currentFilter2, string searchStateNumber, string searchOwnerFIO, int? page)
         {
-            var autorepairContext = _context.Cars.Include(c => c.Owner);
-            return View(await autorepairContext.ToListAsync());
+            if (searchStateNumber != null || searchOwnerFIO != null || (searchStateNumber != null & searchOwnerFIO != null))
+            {
+                page = 1;
+            }
+            else
+            {
+                searchStateNumber = currentFilter1;
+                searchOwnerFIO = currentFilter2;
+            }
+
+            IEnumerable<CarViewModel> carViewModel;
+            ViewBag.CurrentFilter1 = searchStateNumber;
+            ViewBag.CurrentFilter2 = searchOwnerFIO;
+            ICached<Car> cachedCars = _context.GetService<ICached<Car>>();
+
+            if (HttpContext.Session.Keys.Contains("cars"))
+            {
+                carViewModel = HttpContext.Session.Get<IEnumerable<CarViewModel>>("cars");
+            }
+            else
+            {
+                List<Car> cars = (List<Car>)cachedCars.GetList("cachedCars");
+                carViewModel = from c in cars
+                                    join owner in _context.Owners
+                                    on c.OwnerId equals owner.OwnerId
+                                    select new CarViewModel
+                                    {
+                                        CarId = c.CarId,
+                                        Brand = c.Brand,
+                                        Color = c.Color,
+                                        Power = c.Power,
+                                        StateNumber = c.StateNumber,
+                                        OwnerFIO = owner.FirstName + " " + owner.MiddleName + " " + owner.LastName,
+                                        Year = c.Year,
+                                        VIN = c.VIN,
+                                        EngineNumber = c.EngineNumber,
+                                        AdmissionDate = c.AdmissionDate
+                                    };
+            }
+            carViewModel = _SearchStateNumber(_SearchOwnerFIO(carViewModel, searchOwnerFIO), searchStateNumber);
+            ViewBag.CurrentSort = sortOrder;
+            carViewModel = _Sort(carViewModel, sortOrder);
+            int pageSize = 20;
+            int pageNumber = page ?? 1;
+            return View(carViewModel.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Cars/Details/5
@@ -63,9 +113,10 @@ namespace autorepairProj.Controllers
             {
                 _context.Add(car);
                 await _context.SaveChangesAsync();
+                _context.GetService<ICached<Car>>().AddList("cachedCars");
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "Phone", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "FirstName", car.OwnerId);
             return View(car);
         }
 
@@ -82,7 +133,7 @@ namespace autorepairProj.Controllers
             {
                 return NotFound();
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "Phone", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "FirstName", car.OwnerId);
             return View(car);
         }
 
@@ -104,6 +155,7 @@ namespace autorepairProj.Controllers
                 {
                     _context.Update(car);
                     await _context.SaveChangesAsync();
+                    _context.GetService<ICached<Car>>().AddList("cachedCars");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -118,7 +170,7 @@ namespace autorepairProj.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "Phone", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "FirstName", car.OwnerId);
             return View(car);
         }
 
@@ -149,7 +201,51 @@ namespace autorepairProj.Controllers
             var car = await _context.Cars.FindAsync(id);
             _context.Cars.Remove(car);
             await _context.SaveChangesAsync();
+            _context.GetService<ICached<Car>>().AddList("cachedCars");
             return RedirectToAction(nameof(Index));
+        }
+
+
+        private IEnumerable<CarViewModel> _SearchStateNumber(IEnumerable<CarViewModel> cars, string stateNumber)
+        {
+            try
+            {
+                if (!String.IsNullOrEmpty(stateNumber))
+                {
+                    cars = cars.Where(m => m.StateNumber.Contains(stateNumber));
+                }
+            }
+            catch
+            {
+            }
+            return cars;
+        }
+
+        private IEnumerable<CarViewModel> _SearchOwnerFIO(IEnumerable<CarViewModel> cars, string ownerFIO)
+        {
+            if (!String.IsNullOrEmpty(ownerFIO))
+            {
+                cars = cars.Where(c => c.OwnerFIO.Contains(ownerFIO));
+            }
+            return cars;
+        }
+
+        private IEnumerable<CarViewModel> _Sort(IEnumerable<CarViewModel> cars, SortState sortOrder)
+        {
+            ViewData["Power"] = sortOrder == SortState.CarPowerAsc ? SortState.CarPowerDesc : SortState.CarPowerAsc;
+            ViewData["DateAdmission"] = sortOrder == SortState.CarDateAdmissionAsc ? SortState.CarDateAdmissionDesc : SortState.CarDateAdmissionAsc;
+            ViewData["Year"] = sortOrder == SortState.CarDateAsc ? SortState.CarDateDesc : SortState.CarDateAsc;
+            cars = sortOrder switch
+            {
+                SortState.CarPowerAsc => cars.OrderBy(c => c.Power),
+                SortState.CarPowerDesc => cars.OrderByDescending(c => c.Power),
+                SortState.CarDateAdmissionAsc => cars.OrderBy(c => c.AdmissionDate),
+                SortState.CarDateAdmissionDesc => cars.OrderByDescending(c => c.AdmissionDate),
+                SortState.CarDateAsc => cars.OrderBy(c => c.Year),
+                SortState.CarDateDesc => cars.OrderByDescending(c => c.Year),
+                _ => cars.OrderBy(c => c.CarId),
+            };
+            return cars;
         }
 
         private bool CarExists(int id)

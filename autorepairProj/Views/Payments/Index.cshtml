@@ -1,31 +1,57 @@
-﻿@model IEnumerable<autorepairProj.Models.Payment>
+﻿@using autorepairProj.Models;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Web.Common;
+@using autorepairProj.ViewModels
+@model X.PagedList.IPagedList<PaymentViewModel>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Платежи автомастерской";
 }
 
 <h1>Index</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Создать новый платеж</a>
 </p>
-<table class="table">
+@using (Html.BeginForm())
+{
+    <div style="display:flex;">
+        <div style="margin-right: 15px;">
+            <p>Введите выполненную работу: </p>
+            @Html.TextBox("searchProgressReport")
+        </div>
+        <div>
+            <p>Введите ФИО механика:</p>
+            @Html.TextBox("searchMechanicFIO")
+        </div>
+    </div>
+    <p style="margin-top: 15px;">
+        <input type="submit" value="Отправить" />
+    </p>
+}
+
+<table class="table custom-table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Date)
+                Гос номер авто
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Cost)
+                Механик
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ProgressReport)
+                Выполненная работа
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Car)
+
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.Cost">
+                    Цена
+                </a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Mechanic)
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.Date">
+                    Дата выполнения
+                </a>
             </th>
             <th></th>
         </tr>
@@ -34,26 +60,32 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Date)
+                @Html.DisplayFor(modelItem => item.StateNumberCar)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Cost)
+                @Html.DisplayFor(modelItem => item.MechanicFIO)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.ProgressReport)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Car.CarId)
+                @Html.DisplayFor(modelItem => item.Cost)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Mechanic.MechanicId)
+                @Html.DisplayFor(modelItem => item.Date)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.PaymentId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.PaymentId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.PaymentId">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.PaymentId">Изменить</a> |
+                <a asp-action="Details" asp-route-id="@item.PaymentId">Подробнее</a> |
+                <a asp-action="Delete" asp-route-id="@item.PaymentId">Удалить</a>
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions {
+        LiElementClasses = new string[] { "page-item" },
+        PageClasses = new string[] { "page-link" }
+})

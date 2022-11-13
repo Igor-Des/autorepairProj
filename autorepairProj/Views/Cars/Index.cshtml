@@ -1,43 +1,70 @@
-﻿@model IEnumerable<autorepairProj.Models.Car>
+﻿@using autorepairProj.Models;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Web.Common;
+@using autorepairProj.ViewModels
+@model X.PagedList.IPagedList<CarViewModel>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Автомобили";
 }
 
-<h1>Index</h1>
+<h1>Автомобили</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Добавить новый автомобиль</a>
 </p>
-<table class="table">
+@using (Html.BeginForm())
+{
+    <div style="display:flex;">
+        <div style="margin-right: 15px;">
+            <p>Введите гос номер авто: </p>
+            @Html.TextBox("searchStateNumber")
+        </div>
+        <div>
+            <p>Введите ФИО владельца:</p>
+            @Html.TextBox("searchOwnerFIO")
+        </div>
+    </div>
+    <p style="margin-top: 15px;">
+        <input type="submit" value="Отправить" />
+    </p>
+}
+<table class="table custom-table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Brand)
+                Бренд
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Power)
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.Power">
+                    Мощность(в л.с.)
+                </a>                
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Color)
+                Цвет
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.StateNumber)
+                Гос.Номер
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Year)
+
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.Year">
+                    Год авто
+                </a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.VIN)
+                ВИН
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.EngineNumber)
+                Номер двигателя
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.AdmissionDate)
+                <a asp-action="Index" asp-route-sortOrder="@ViewBag.DateAdmission">
+                    Дата поступления
+                </a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Owner.Phone)
+                ФИО Владельца
             </th>
             <th></th>
         </tr>
@@ -70,14 +97,20 @@
                 @Html.DisplayFor(modelItem => item.AdmissionDate)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Owner.Phone)
+                @Html.DisplayFor(modelItem => item.OwnerFIO)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.CarId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.CarId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.CarId">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.CarId">Изменить</a> |
+                <a asp-action="Details" asp-route-id="@item.CarId">Подробнее</a> |
+                <a asp-action="Delete" asp-route-id="@item.CarId">Удалить</a>
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions {
+        LiElementClasses = new string[] { "page-item" },
+        PageClasses = new string[] { "page-link" }
+})

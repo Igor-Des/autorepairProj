@@ -1,34 +1,37 @@
-﻿@model IEnumerable<autorepairProj.Models.Owner>
+﻿@using autorepairProj.Models;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Web.Common;
+@model X.PagedList.IPagedList<Owner>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Владельцы автомобилей";
 }
 
 <h1>Index</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Создать нового владельца</a>
 </p>
-<table class="table">
+<table class="table custom-table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.FirstName)
+                Имя
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.MiddleName)
+                Фамилия
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.LastName)
+                Отчество
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.DriverLicenseNumber)
+                Вод.Уд.
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Address)
+                Адрес
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Phone)
+                Телефон
             </th>
             <th></th>
         </tr>
@@ -55,11 +58,17 @@
                 @Html.DisplayFor(modelItem => item.Phone)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.OwnerId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.OwnerId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.OwnerId">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.OwnerId">Изменить</a> |
+                <a asp-action="Details" asp-route-id="@item.OwnerId">Подробнее</a> |
+                <a asp-action="Delete" asp-route-id="@item.OwnerId">Удалить</a>
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions {
+        LiElementClasses = new string[] { "page-item" },
+        PageClasses = new string[] { "page-link" }
+})

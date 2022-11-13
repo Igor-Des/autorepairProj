@@ -38,7 +38,7 @@ namespace autorepairProj.Services
                 mechanics = _context.Mechanics.ToList();
                 if (mechanics != null)
                 {
-                    _memoryCache.Set(key, mechanics, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(264)));
+                    _memoryCache.Set(key, mechanics, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(258)));
                 }
             }
             return mechanics;

@@ -1,22 +1,24 @@
-﻿@model IEnumerable<autorepairProj.Models.Qualification>
-
+﻿@using autorepairProj.Models;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Web.Common;
+@model X.PagedList.IPagedList<Qualification>
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Должности автомехаников";
 }
 
-<h1>Index</h1>
+<h1>Должности для механиков</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Создать новую должность</a>
 </p>
-<table class="table">
+<table class="table custom-table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Name)
+                Должность
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Salary)
+                Зарплата
             </th>
             <th></th>
         </tr>
@@ -31,11 +33,17 @@
                 @Html.DisplayFor(modelItem => item.Salary)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.QualificationId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.QualificationId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.QualificationId">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.QualificationId">Изменить</a> |
+                <a asp-action="Details" asp-route-id="@item.QualificationId">Подробнее</a> |
+                <a asp-action="Delete" asp-route-id="@item.QualificationId">Удалить</a>
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }), new PagedListRenderOptions {
+        LiElementClasses = new string[] { "page-item" },
+        PageClasses = new string[] { "page-link" }
+})
