@@ -19,6 +19,7 @@ namespace autorepairProj.Middleware
         {
             if (!(context.Session.Keys.Contains("starting")))
             {
+                DbUserInitializer.Initialize(context).Wait();
                 DbInitializer.Initialize(dbContext);
                 context.Session.SetString("starting", "Yes");
             }

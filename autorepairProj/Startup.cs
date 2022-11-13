@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -31,8 +32,19 @@ namespace autorepairProj
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc();
+            services.AddControllersWithViews();
+
             services.AddDbContext<AutorepairContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
+
+            services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+                    .AddEntityFrameworkStores<ApplicationDbContext>()
+                    .AddDefaultUI()
+                    .AddDefaultTokenProviders();
 
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
@@ -46,13 +58,12 @@ namespace autorepairProj
             services.AddScoped<ICached<Car>, CachedCars>();
             services.AddScoped<ICached<Payment>, CachedPayments>();
 
-            services.AddMvc();
-            services.AddControllersWithViews();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AutorepairContext _context)
         {
+            //serviceProvider.GetService<ApplicationDbContext>().Database.EnsureCreated();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -65,12 +76,12 @@ namespace autorepairProj
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseCookiePolicy();
 
             // добавляем поддержку сессий
             app.UseSession();
             // добавляем компонента miidleware по инициализации базы данных
             app.UseDbInitializer();
-            DbInitializer.Initialize(_context); // ???
 
             app.UseRouting();
 
