@@ -35,19 +35,26 @@ namespace autorepairProj
             services.AddMvc();
             services.AddControllersWithViews();
 
-            services.AddDbContext<AutorepairContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            string connectionDB = Configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<AutorepairContext>(options => options.UseSqlServer(connectionDB));
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
+            string connectionUserDB = Configuration.GetConnectionString("IdentityConnection");
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionDB));
+
 
             services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
                     .AddEntityFrameworkStores<ApplicationDbContext>()
                     .AddDefaultUI()
                     .AddDefaultTokenProviders();
 
+            services.Configure<ApplicationDbContext>(o =>
+            {
+                o.Database.Migrate();
+            });
+
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
+
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 
@@ -63,7 +70,9 @@ namespace autorepairProj
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AutorepairContext _context)
         {
+            
             //serviceProvider.GetService<ApplicationDbContext>().Database.EnsureCreated();
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

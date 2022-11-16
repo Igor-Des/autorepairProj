@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using System;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace autorepairProj.Middleware
 {
@@ -15,26 +16,17 @@ namespace autorepairProj.Middleware
             _next = next;
         }
 
-        public Task Invoke(HttpContext context, IServiceProvider serviceProvider, AutorepairContext dbContext)
+        public Task Invoke(HttpContext context)
         {
             if (!(context.Session.Keys.Contains("starting")))
             {
                 DbUserInitializer.Initialize(context).Wait();
-                DbInitializer.Initialize(dbContext);
+                DbInitializer.Initialize(context.RequestServices.GetRequiredService<AutorepairContext>());
                 context.Session.SetString("starting", "Yes");
             }
 
             // Call the next delegate/middleware in the pipeline
             return _next.Invoke(context);
         }
-    }
-
-    public static class DbInitializerExtensions
-    {
-        public static IApplicationBuilder UseDbInitializer(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<DbInitializerMiddleware>();
-        }
-
     }
 }

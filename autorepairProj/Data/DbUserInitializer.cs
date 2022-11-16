@@ -16,7 +16,7 @@ namespace autorepairProj.Data
             string adminEmail = "admin@gmail.com";
             string adminName = "admin@gmail.com";
 
-            string password = "_Aa123456";
+            string password = "123456";
             if (await roleManager.FindByNameAsync("admin") == null)
             {
                 await roleManager.CreateAsync(new IdentityRole("admin"));
