@@ -1,3 +1,4 @@
+using autorepairProj.Areas.Identity.Data;
 using autorepairProj.Data;
 using autorepairProj.Middleware;
 using autorepairProj.Models;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace autorepairProj
 {
@@ -31,11 +34,26 @@ namespace autorepairProj
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<AutorepairContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            string connectionDB = Configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<AutorepairContext>(options => options.UseSqlServer(connectionDB));
+
+            string connectionUserDB = Configuration.GetConnectionString("ApplicationDbContextConnection");
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionUserDB));
+
+            services.AddIdentity<ApplicationUser, IdentityRole>(options => options.SignIn.RequireConfirmedAccount = false)
+                   .AddEntityFrameworkStores<ApplicationDbContext>()
+                   .AddDefaultUI()
+                   .AddDefaultTokenProviders();
+
+            //services.Configure<ApplicationDbContext>(o =>
+            //{
+            //    o.Database.Migrate();
+            //});
 
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
+
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 
@@ -53,6 +71,9 @@ namespace autorepairProj
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AutorepairContext _context)
         {
+
+            //serviceProvider.GetService<ApplicationDbContext>().Database.EnsureCreated();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -68,9 +89,9 @@ namespace autorepairProj
 
             // добавляем поддержку сессий
             app.UseSession();
+
             // добавляем компонента miidleware по инициализации базы данных
             app.UseDbInitializer();
-            DbInitializer.Initialize(_context); // ???
 
             app.UseRouting();
 
@@ -93,7 +114,9 @@ namespace autorepairProj
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapRazorPages();
             });
+
         }
     }
 }
