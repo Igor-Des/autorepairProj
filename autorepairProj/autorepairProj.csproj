@@ -18,4 +18,8 @@
     <PackageReference Include="X.PagedList.Mvc.Core" Version="8.4.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="wwwroot\img\home.jpg" />
+  </ItemGroup>
+
 </Project>

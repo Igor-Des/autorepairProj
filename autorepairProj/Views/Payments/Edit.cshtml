@@ -1,12 +1,15 @@
-﻿@model autorepairProj.Models.Payment
+﻿@using autorepairProj.Models;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Web.Common;
+@model autorepairProj.ViewModels.PaymentViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Редактирование платежа";
 }
 
-<h1>Edit</h1>
+<h1>Редактировать</h1>
 
-<h4>Payment</h4>
+<h4>Платеж</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -14,8 +17,8 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="PaymentId" />
             <div class="form-group">
-                <label asp-for="CarId" class="control-label"></label>
-                <select asp-for="CarId" class="form-control" asp-items="ViewBag.CarId"></select>
+                <label asp-for="StateNumberCar" class="control-label"></label>
+                <select asp-for="CarId" class="form-control" asp-items="ViewBag.StateNumberCar"></select>
                 <span asp-validation-for="CarId" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -29,9 +32,9 @@
                 <span asp-validation-for="Cost" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="MechanicId" class="control-label"></label>
-                <select asp-for="MechanicId" class="form-control" asp-items="ViewBag.MechanicId"></select>
-                <span asp-validation-for="MechanicId" class="text-danger"></span>
+                <label asp-for="MechanicFIO" class="control-label"></label>
+                <select asp-for="MechanicFIO" class="form-control" asp-items="ViewBag.MechanicFIO"></select>
+                <span asp-validation-for="MechanicFIO" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="ProgressReport" class="control-label"></label>
@@ -39,13 +42,13 @@
                 <span asp-validation-for="ProgressReport" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Сохранить" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Вернуться к списку всех платежей</a>
 </div>
 

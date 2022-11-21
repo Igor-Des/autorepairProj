@@ -1,13 +1,16 @@
-﻿@model autorepairProj.Models.Payment
+﻿@using autorepairProj.Models;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Web.Common;
+@model autorepairProj.ViewModels.PaymentViewModel;
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Подробнее о платеже";
 }
 
-<h1>Details</h1>
+<h1>Подробнее</h1>
 
 <div>
-    <h4>Payment</h4>
+    <h4>Платеж</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -29,20 +32,20 @@
             @Html.DisplayFor(model => model.ProgressReport)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Car)
+            @Html.DisplayNameFor(model => model.StateNumberCar)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Car.CarId)
+            @Html.DisplayFor(model => model.StateNumberCar)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Mechanic)
+            @Html.DisplayNameFor(model => model.MechanicFIO)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Mechanic.MechanicId)
+            @Html.DisplayFor(model => model.MechanicFIO)
         </dd>
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.PaymentId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.PaymentId">Изменить</a> |
+    <a asp-action="Index">Вернуться к списку всех платежей</a>
 </div>

@@ -1,14 +1,13 @@
 ﻿@model autorepairProj.Models.Qualification
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Удаление должности";
 }
 
-<h1>Delete</h1>
+<h1>Удалиние</h1>
 
-<h3>Are you sure you want to delete this?</h3>
+<h3>Вы уверены, что хотите удалить данную должность??</h3>
 <div>
-    <h4>Qualification</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -27,7 +26,7 @@
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="QualificationId" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <input type="submit" value="Удалить" class="btn btn-danger" /> |
+        <a asp-action="Index">Вернуться к списку должностей</a>
     </form>
 </div>

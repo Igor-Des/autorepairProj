@@ -12,6 +12,7 @@ namespace autorepairProj.ViewModels
         [Required(ErrorMessage = "Не указан гос. номер автомобиля")]
         [Display(Name = "Гос.номер машины")]
         public string StateNumberCar { get; set; }
+        public int CarId { get; set; }
 
         [Required(ErrorMessage = "Не указана дата платежа")]
         [Display(Name = "Дата платежа")]
@@ -26,6 +27,7 @@ namespace autorepairProj.ViewModels
         [Required(ErrorMessage = "Не указано ФИО механика, который выполнил заданную работу")]
         [Display(Name = "ФИО механика")]
         public string MechanicFIO { get; set; }
+        public int MechanicId { get; set; }
 
         [Required(ErrorMessage = "Не указана проделанная работа над автомобилем")]
         [Display(Name = "Выполненная работа")]
