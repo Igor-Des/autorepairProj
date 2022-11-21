@@ -46,10 +46,10 @@ namespace autorepairProj
                    .AddDefaultUI()
                    .AddDefaultTokenProviders();
 
-            //services.Configure<ApplicationDbContext>(o =>
-            //{
-            //    o.Database.Migrate();
-            //});
+            services.Configure<ApplicationDbContext>(o =>
+            {
+                o.Database.Migrate();
+            });
 
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
@@ -69,10 +69,10 @@ namespace autorepairProj
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AutorepairContext _context)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AutorepairContext _context, IServiceProvider serviceProvider)
         {
 
-            //serviceProvider.GetService<ApplicationDbContext>().Database.EnsureCreated();
+            serviceProvider.GetService<ApplicationDbContext>().Database.EnsureCreated();
 
             if (env.IsDevelopment())
             {
