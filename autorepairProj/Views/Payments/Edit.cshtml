@@ -1,7 +1,7 @@
 ﻿@using autorepairProj.Models;
 @using X.PagedList.Mvc.Core;
 @using X.PagedList.Web.Common;
-@model autorepairProj.ViewModels.PaymentViewModel
+@model autorepairProj.Models.Payment
 
 @{
     ViewData["Title"] = "Редактирование платежа";
@@ -17,8 +17,8 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="PaymentId" />
             <div class="form-group">
-                <label asp-for="StateNumberCar" class="control-label"></label>
-                <select asp-for="CarId" class="form-control" asp-items="ViewBag.StateNumberCar"></select>
+                <label asp-for="CarId" class="control-label">Гос. номер авто</label>
+                <select asp-for="CarId" class="form-control" asp-items="ViewBag.CarId"></select>
                 <span asp-validation-for="CarId" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -32,9 +32,9 @@
                 <span asp-validation-for="Cost" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="MechanicFIO" class="control-label"></label>
-                <select asp-for="MechanicFIO" class="form-control" asp-items="ViewBag.MechanicFIO"></select>
-                <span asp-validation-for="MechanicFIO" class="text-danger"></span>
+                <label asp-for="MechanicId" class="control-label">Фамилия механика</label>
+                <select asp-for="MechanicId" class="form-control" asp-items="ViewBag.MechanicId"></select>
+                <span asp-validation-for="MechanicId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="ProgressReport" class="control-label"></label>

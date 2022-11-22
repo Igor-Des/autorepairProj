@@ -1,4 +1,7 @@
-﻿@model autorepairProj.Models.Payment
+﻿@using autorepairProj.Models;
+@using X.PagedList.Mvc.Core;
+@using X.PagedList.Web.Common;
+@model autorepairProj.ViewModels.PaymentViewModel;
 
 @{
     ViewData["Title"] = "Удаление платежа";
@@ -30,16 +33,16 @@
             @Html.DisplayFor(model => model.ProgressReport)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Car)
+            @Html.DisplayNameFor(model => model.StateNumberCar)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Car.CarId)
+            @Html.DisplayFor(model => model.StateNumberCar)
         </dd class>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Mechanic)
+            @Html.DisplayNameFor(model => model.MechanicFIO)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Mechanic.MechanicId)
+            @Html.DisplayFor(model => model.MechanicFIO)
         </dd class>
     </dl>
     

@@ -98,7 +98,7 @@ namespace autorepairProj.Controllers
         // GET: Cars/Create
         public IActionResult Create()
         {
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "Phone");
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber");
             return View();
         }
 
@@ -116,7 +116,7 @@ namespace autorepairProj.Controllers
                 _context.GetService<ICached<Car>>().AddList("cachedCars");
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "FirstName", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber", car.OwnerId);
             return View(car);
         }
 
@@ -133,7 +133,7 @@ namespace autorepairProj.Controllers
             {
                 return NotFound();
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "FirstName", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber", car.OwnerId);
             return View(car);
         }
 
@@ -170,7 +170,7 @@ namespace autorepairProj.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "FirstName", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber", car.OwnerId);
             return View(car);
         }
 
