@@ -30,7 +30,7 @@ namespace autorepairProj.Controllers
         // GET: Payments
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 258)]
         public ActionResult Index(SortState sortOrder, string currentFilter1,
-            string currentFilter2, string searchProgressReport, string searchMechanicFIO, int? page)
+            string currentFilter2, string searchProgressReport, string searchMechanicFIO, int? page, int? reset)
         {
             if (searchProgressReport != null || searchMechanicFIO != null || (searchProgressReport != null & searchMechanicFIO != null))
             {
@@ -47,11 +47,7 @@ namespace autorepairProj.Controllers
             ViewBag.CurrentFilter2 = searchMechanicFIO;
             ICached<Payment> cachedPayments = _context.GetService<ICached<Payment>>();
 
-            if (HttpContext.Session.Keys.Contains("payments"))
-            {
-                paymentViewModel = HttpContext.Session.Get<IEnumerable<PaymentViewModel>>("payments");
-            }
-            else
+            if (reset == 1 || !HttpContext.Session.Keys.Contains("payments"))
             {
                 List<Payment> payments = (List<Payment>)cachedPayments.GetList("cachedPayments");
                 paymentViewModel = from p in payments
@@ -68,12 +64,25 @@ namespace autorepairProj.Controllers
                                        Cost = p.Cost,
                                        ProgressReport = p.ProgressReport
                                    };
+                HttpContext.Session.SetList("payments", paymentViewModel);
             }
-            paymentViewModel = _SearchProgressReport(_SearchMechanicFIO(paymentViewModel, searchMechanicFIO), searchProgressReport);
-            ViewBag.CurrentSort = sortOrder;
+            else
+            {
+                paymentViewModel = HttpContext.Session.Get<IEnumerable<PaymentViewModel>>("payments");
+            }
+
             paymentViewModel = _Sort(paymentViewModel, sortOrder);
+            ViewBag.CurrentSort = sortOrder;
+            paymentViewModel = _SearchProgressReport(_SearchMechanicFIO(paymentViewModel, searchMechanicFIO), searchProgressReport);
+
+            if (!HttpContext.Session.Keys.Contains("payments") || searchProgressReport != null || searchMechanicFIO != null || sortOrder != default)
+            {
+                HttpContext.Session.SetList("payments", paymentViewModel);
+            }
+
             int pageSize = 20;
             int pageNumber = page ?? 1;
+
             return View(paymentViewModel.ToPagedList(pageNumber, pageSize));
         }
 
