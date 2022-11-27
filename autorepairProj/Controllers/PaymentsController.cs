@@ -49,8 +49,7 @@ namespace autorepairProj.Controllers
 
             if (reset == 1 || !HttpContext.Session.Keys.Contains("payments"))
             {
-                List<Payment> payments = (List<Payment>)cachedPayments.GetList("cachedPayments");
-                paymentViewModel = from p in payments
+                paymentViewModel = from p in cachedPayments.GetList("cachedPayments")
                                    join c in _context.Cars
                                    on p.CarId equals c.CarId
                                    join m in _context.Mechanics
@@ -70,12 +69,11 @@ namespace autorepairProj.Controllers
             {
                 paymentViewModel = HttpContext.Session.Get<IEnumerable<PaymentViewModel>>("payments");
             }
-
-            paymentViewModel = _Sort(paymentViewModel, sortOrder);
-            ViewBag.CurrentSort = sortOrder;
             paymentViewModel = _SearchProgressReport(_SearchMechanicFIO(paymentViewModel, searchMechanicFIO), searchProgressReport);
+            ViewBag.CurrentSort = sortOrder;
+            paymentViewModel = _Sort(paymentViewModel, sortOrder);
 
-            if (!HttpContext.Session.Keys.Contains("payments") || searchProgressReport != null || searchMechanicFIO != null || sortOrder != default)
+            if (!HttpContext.Session.Keys.Contains("payments") || searchProgressReport != null || searchMechanicFIO != null)
             {
                 HttpContext.Session.SetList("payments", paymentViewModel);
             }
@@ -140,6 +138,7 @@ namespace autorepairProj.Controllers
                 _context.Add(payment);
                 await _context.SaveChangesAsync();
                 _context.GetService<ICached<Payment>>().AddList("cachedPayments");
+                HttpContext.Session.SetList("payments", _context.Payments);
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "CarId", payment.CarId);
@@ -186,6 +185,7 @@ namespace autorepairProj.Controllers
                     _context.Update(payment);
                     await _context.SaveChangesAsync();
                     _context.GetService<ICached<Payment>>().AddList("cachedPayments");
+                    HttpContext.Session.SetList("payments", _context.Payments);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -235,7 +235,6 @@ namespace autorepairProj.Controllers
             {
                 return NotFound();
             }
-
             return View(paymentViewModel.FirstOrDefault());
         }
 
@@ -248,6 +247,7 @@ namespace autorepairProj.Controllers
             _context.Payments.Remove(payment);
             await _context.SaveChangesAsync();
             _context.GetService<ICached<Payment>>().AddList("cachedPayments");
+            HttpContext.Session.SetList("payments", _context.Payments);
             return RedirectToAction(nameof(Index));
         }
 

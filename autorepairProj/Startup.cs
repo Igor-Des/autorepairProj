@@ -34,6 +34,8 @@ namespace autorepairProj
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc();
+            services.AddControllersWithViews();
 
             string connectionDB = Configuration.GetConnectionString("DefaultConnection");
             services.AddDbContext<AutorepairContext>(options => options.UseSqlServer(connectionDB));
@@ -54,6 +56,7 @@ namespace autorepairProj
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
 
+            services.AddResponseCompression(options => options.EnableForHttps = true);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 
@@ -64,12 +67,11 @@ namespace autorepairProj
             services.AddScoped<ICached<Car>, CachedCars>();
             services.AddScoped<ICached<Payment>, CachedPayments>();
 
-            services.AddMvc();
-            services.AddControllersWithViews();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, AutorepairContext _context, IServiceProvider serviceProvider)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            AutorepairContext _context, IServiceProvider serviceProvider)
         {
 
             serviceProvider.GetService<ApplicationDbContext>().Database.EnsureCreated();
@@ -89,11 +91,11 @@ namespace autorepairProj
 
             // добавляем поддержку сессий
             app.UseSession();
+            app.UseRouting();
 
             // добавляем компонента miidleware по инициализации базы данных
             app.UseDbInitializer();
 
-            app.UseRouting();
 
 
             // использование Identity
