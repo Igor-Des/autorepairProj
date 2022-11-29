@@ -7,16 +7,16 @@ namespace autorepairProj.Models
     public class Owner
     {
         [Key]
-        [Display(Name = "Код владельца авто")]
+        [Display(Name = "Код владельца")]
         public int OwnerId { get; set; }
 
-        [Display(Name = "Имя владельца")]
+        [Display(Name = "Имя")]
         public string FirstName { get; set; }
 
-        [Display(Name = "Фамилия владельца")]
+        [Display(Name = "Фамилия")]
         public string MiddleName { get; set; }
 
-        [Display(Name = "Отчество владельца")]
+        [Display(Name = "Отчество")]
         public string LastName { get; set; }
 
         [Display(Name = "Номер вод.уд.")]

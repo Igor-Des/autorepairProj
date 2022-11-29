@@ -1,13 +1,13 @@
 ﻿@model autorepairProj.Models.Car
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Подробнее";
 }
 
-<h1>Details</h1>
+<h1>Подробнее</h1>
 
 <div>
-    <h4>Car</h4>
+    <h4>об автомобиле</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -59,14 +59,14 @@
             @Html.DisplayFor(model => model.AdmissionDate)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Owner.FirstName)
+            @Html.DisplayNameFor(model => model.Owner.DriverLicenseNumber)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Owner.FirstName)
+            @Html.DisplayFor(model => model.Owner.DriverLicenseNumber)
         </dd>
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.CarId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.CarId">Изменить автомобиль</a> |
+    <a asp-action="Index">Вернуться к списку автомобилей</a>
 </div>

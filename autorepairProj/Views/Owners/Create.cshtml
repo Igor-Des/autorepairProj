@@ -1,12 +1,12 @@
 ﻿@model autorepairProj.Models.Owner
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Добавление владельца";
 }
 
-<h1>Create</h1>
+<h1>Добавление нового</h1>
 
-<h4>Owner</h4>
+<h4>владельца</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -43,13 +43,13 @@
                 <span asp-validation-for="Phone" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Добавить" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Вернуться к списку владельцев</a>
 </div>
 

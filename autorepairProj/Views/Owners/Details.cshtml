@@ -1,13 +1,13 @@
 ﻿@model autorepairProj.Models.Owner
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Подробнее о владельце авто";
 }
 
-<h1>Details</h1>
+<h1>Подробнее</h1>
 
 <div>
-    <h4>Owner</h4>
+    <h4>Владелец</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -49,6 +49,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.OwnerId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.OwnerId">Изменить</a> |
+    <a asp-action="Index">Вернуться к списку владельцев</a>
 </div>

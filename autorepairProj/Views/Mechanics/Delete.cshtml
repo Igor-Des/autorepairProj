@@ -1,14 +1,13 @@
 ﻿@model autorepairProj.Models.Mechanic
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Удаление механика";
 }
 
-<h1>Delete</h1>
+<h1>Удаление</h1>
 
-<h3>Are you sure you want to delete this?</h3>
+<h3>Вы уверены что хотите удалить данного механика?</h3>
 <div>
-    <h4>Mechanic</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -45,7 +44,7 @@
     
     <form asp-action="Delete">
         <input type="hidden" asp-for="MechanicId" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <input type="submit" value="Удалить" class="btn btn-danger" /> |
+        <a asp-action="Index">Вернуться к списку механиков</a>
     </form>
 </div>

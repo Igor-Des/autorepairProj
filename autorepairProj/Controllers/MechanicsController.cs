@@ -152,6 +152,7 @@ namespace autorepairProj.Controllers
                     _context.Update(mechanic);
                     await _context.SaveChangesAsync();
                     _context.GetService<ICached<Mechanic>>().AddList("cachedMechanics");
+                    HttpContext.Session.Clear();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -190,6 +191,7 @@ namespace autorepairProj.Controllers
             _context.Mechanics.Remove(mechanic);
             await _context.SaveChangesAsync();
             _context.GetService<ICached<Mechanic>>().AddList("cachedMechanics");
+            HttpContext.Session.Clear();
             return RedirectToAction("Index");
         }
 

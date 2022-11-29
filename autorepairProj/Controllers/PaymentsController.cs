@@ -12,9 +12,12 @@ using autorepairProj.ViewModels;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using X.PagedList;
 using autorepairProj.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace autorepairProj.Controllers
 {
+    [Authorize(Roles = "admin, user")]
     public class PaymentsController : Controller
     {
         private readonly AutorepairContext _context;
@@ -25,8 +28,9 @@ namespace autorepairProj.Controllers
         }
 
         // GET: Payments
+        [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 258)]
         public ActionResult Index(SortState sortOrder, string currentFilter1,
-            string currentFilter2, string searchProgressReport, string searchMechanicFIO, int? page)
+            string currentFilter2, string searchProgressReport, string searchMechanicFIO, int? page, int? reset)
         {
             if (searchProgressReport != null || searchMechanicFIO != null || (searchProgressReport != null & searchMechanicFIO != null))
             {
@@ -43,14 +47,9 @@ namespace autorepairProj.Controllers
             ViewBag.CurrentFilter2 = searchMechanicFIO;
             ICached<Payment> cachedPayments = _context.GetService<ICached<Payment>>();
 
-            if (HttpContext.Session.Keys.Contains("cars"))
+            if (reset == 1 || !HttpContext.Session.Keys.Contains("payments"))
             {
-                paymentViewModel = HttpContext.Session.Get<IEnumerable<PaymentViewModel>>("payments");
-            }
-            else
-            {
-                List<Payment> payments = (List<Payment>)cachedPayments.GetList("cachedPayments");
-                paymentViewModel = from p in payments
+                paymentViewModel = from p in cachedPayments.GetList("cachedPayments")
                                    join c in _context.Cars
                                    on p.CarId equals c.CarId
                                    join m in _context.Mechanics
@@ -64,12 +63,24 @@ namespace autorepairProj.Controllers
                                        Cost = p.Cost,
                                        ProgressReport = p.ProgressReport
                                    };
+                HttpContext.Session.SetList("payments", paymentViewModel);
+            }
+            else
+            {
+                paymentViewModel = HttpContext.Session.Get<IEnumerable<PaymentViewModel>>("payments");
             }
             paymentViewModel = _SearchProgressReport(_SearchMechanicFIO(paymentViewModel, searchMechanicFIO), searchProgressReport);
             ViewBag.CurrentSort = sortOrder;
             paymentViewModel = _Sort(paymentViewModel, sortOrder);
+
+            if (!HttpContext.Session.Keys.Contains("payments") || searchProgressReport != null || searchMechanicFIO != null)
+            {
+                HttpContext.Session.SetList("payments", paymentViewModel);
+            }
+
             int pageSize = 20;
             int pageNumber = page ?? 1;
+
             return View(paymentViewModel.ToPagedList(pageNumber, pageSize));
         }
 
@@ -81,24 +92,37 @@ namespace autorepairProj.Controllers
             {
                 return NotFound();
             }
+            ICached<Payment> cachedPayments = _context.GetService<ICached<Payment>>();
+            List<Payment> payments = (List<Payment>)cachedPayments.GetList("cachedPayments");
 
-            var payment = await _context.Payments
-                .Include(p => p.Car)
-                .Include(p => p.Mechanic)
-                .FirstOrDefaultAsync(m => m.PaymentId == id);
-            if (payment == null)
+            var paymentViewModel = from p in payments
+                               join c in _context.Cars
+                               on p.CarId equals c.CarId
+                               join m in _context.Mechanics
+                               on p.MechanicId equals m.MechanicId
+                               where p.PaymentId == id 
+                               select new PaymentViewModel
+                               {
+                                   PaymentId = p.PaymentId,
+                                   StateNumberCar = c.StateNumber,
+                                   MechanicFIO = m.FirstName + " " + m.MiddleName + " " + m.LastName,
+                                   Date = p.Date,
+                                   Cost = p.Cost,
+                                   ProgressReport = p.ProgressReport
+                               };
+            if (paymentViewModel == null)
             {
                 return NotFound();
             }
 
-            return View(payment);
+            return View(paymentViewModel.FirstOrDefault());
         }
 
         // GET: Payments/Create
         public IActionResult Create()
         {
-            ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "CarId");
-            ViewData["MechanicId"] = new SelectList(_context.Mechanics, "MechanicId", "MechanicId");
+            ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "StateNumber");
+            ViewData["MechanicId"] = new SelectList(_context.Mechanics, "MechanicId", "MiddleName");
             return View();
         }
 
@@ -113,6 +137,8 @@ namespace autorepairProj.Controllers
             {
                 _context.Add(payment);
                 await _context.SaveChangesAsync();
+                _context.GetService<ICached<Payment>>().AddList("cachedPayments");
+                HttpContext.Session.SetList("payments", _context.Payments);
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "CarId", payment.CarId);
@@ -128,13 +154,15 @@ namespace autorepairProj.Controllers
                 return NotFound();
             }
 
-            var payment = await _context.Payments.FindAsync(id);
+            var payment = await _context.Payments
+                .SingleOrDefaultAsync(p => p.PaymentId == id);
+             
             if (payment == null)
             {
                 return NotFound();
             }
-            ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "CarId", payment.CarId);
-            ViewData["MechanicId"] = new SelectList(_context.Mechanics, "MechanicId", "MechanicId", payment.MechanicId);
+            ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "StateNumber", payment.CarId);
+            ViewData["MechanicId"] = new SelectList(_context.Mechanics, "MechanicId", "MiddleName", payment.MechanicId);
             return View(payment);
         }
 
@@ -156,6 +184,8 @@ namespace autorepairProj.Controllers
                 {
                     _context.Update(payment);
                     await _context.SaveChangesAsync();
+                    _context.GetService<ICached<Payment>>().AddList("cachedPayments");
+                    HttpContext.Session.SetList("payments", _context.Payments);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -183,16 +213,29 @@ namespace autorepairProj.Controllers
                 return NotFound();
             }
 
-            var payment = await _context.Payments
-                .Include(p => p.Car)
-                .Include(p => p.Mechanic)
-                .FirstOrDefaultAsync(m => m.PaymentId == id);
-            if (payment == null)
+            ICached<Payment> cachedPayments = _context.GetService<ICached<Payment>>();
+            List<Payment> payments = (List<Payment>)cachedPayments.GetList("cachedPayments");
+
+            var paymentViewModel = from p in payments
+                                   join c in _context.Cars
+                                   on p.CarId equals c.CarId
+                                   join m in _context.Mechanics
+                                   on p.MechanicId equals m.MechanicId
+                                   where p.PaymentId == id
+                                   select new PaymentViewModel
+                                   {
+                                       PaymentId = p.PaymentId,
+                                       StateNumberCar = c.StateNumber,
+                                       MechanicFIO = m.FirstName + " " + m.MiddleName + " " + m.LastName,
+                                       Date = p.Date,
+                                       Cost = p.Cost,
+                                       ProgressReport = p.ProgressReport
+                                   };
+            if (paymentViewModel == null)
             {
                 return NotFound();
             }
-
-            return View(payment);
+            return View(paymentViewModel.FirstOrDefault());
         }
 
         // POST: Payments/Delete/5
@@ -203,6 +246,8 @@ namespace autorepairProj.Controllers
             var payment = await _context.Payments.FindAsync(id);
             _context.Payments.Remove(payment);
             await _context.SaveChangesAsync();
+            _context.GetService<ICached<Payment>>().AddList("cachedPayments");
+            HttpContext.Session.SetList("payments", _context.Payments);
             return RedirectToAction(nameof(Index));
         }
 
