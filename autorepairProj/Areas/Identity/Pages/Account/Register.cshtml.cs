@@ -54,12 +54,12 @@ namespace autorepairProj.Areas.Identity.Pages.Account
             [Required]
             [StringLength(100, ErrorMessage = "{0} должно быть не менее {2} и не более {1} символов.", MinimumLength = 6)]
             [DataType(DataType.Password)]
-            [Display(Name = "Password")]
+            [Display(Name = "Пароль")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
             [Display(Name = "Подтверждение пароля")]
-            [Compare("Password", ErrorMessage = "Пароли не совпадают")]
+            [Compare("Пароль", ErrorMessage = "Пароли не совпадают")]
             public string ConfirmPassword { get; set; }
         }
 
@@ -101,11 +101,8 @@ namespace autorepairProj.Areas.Identity.Pages.Account
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         return LocalRedirect(returnUrl);
                     }
-                }
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+                }                
+                ModelState.AddModelError(string.Empty, "Произошла какая-то ошибка!\n Возможно Ваш пароль недостаточно сложен!");
             }
 
             // If we got this far, something failed, redisplay form

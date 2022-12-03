@@ -43,30 +43,13 @@ namespace autorepairProj.Controllers
             ViewBag.CurrentFilter1 = searchStateNumber;
             ViewBag.CurrentFilter2 = searchOwnerFIO;
             ICached<Car> cachedCars = _context.GetService<ICached<Car>>();
-
             if (reset == 1 || !HttpContext.Session.Keys.Contains("cars"))
             {
-                carViewModel = from c in cachedCars.GetList("cachedCars")
-                               join owner in _context.Owners
-                               on c.OwnerId equals owner.OwnerId
-                               select new CarViewModel
-                               {
-                                   CarId = c.CarId,
-                                   Brand = c.Brand,
-                                   Color = c.Color,
-                                   Power = c.Power,
-                                   StateNumber = c.StateNumber,
-                                   OwnerFIO = owner.FirstName + " " + owner.MiddleName + " " + owner.LastName,
-                                   Year = c.Year,
-                                   VIN = c.VIN,
-                                   EngineNumber = c.EngineNumber,
-                                   AdmissionDate = c.AdmissionDate
-                               };
+                carViewModel = GetOrder(cachedCars.GetList());
                 HttpContext.Session.SetList("cars", carViewModel);
             }
             else
             {
-
                 carViewModel = HttpContext.Session.Get<IEnumerable<CarViewModel>>("cars");
             }
             carViewModel = _SearchStateNumber(_SearchOwnerFIO(carViewModel, searchOwnerFIO), searchStateNumber);
@@ -119,8 +102,8 @@ namespace autorepairProj.Controllers
             {
                 _context.Add(car);
                 await _context.SaveChangesAsync();
-                _context.GetService<ICached<Car>>().AddList("cachedCars");
-                HttpContext.Session.SetList("cars", _context.Cars);
+                IEnumerable<CarViewModel> carViewModel = GetOrder(_context.GetService<ICached<Car>>().GetList());
+                HttpContext.Session.SetList("cars", carViewModel);
                 return RedirectToAction(nameof(Index));
             }
             ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber", car.OwnerId);
@@ -140,7 +123,7 @@ namespace autorepairProj.Controllers
             {
                 return NotFound();
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber");
             return View(car);
         }
 
@@ -162,8 +145,8 @@ namespace autorepairProj.Controllers
                 {
                     _context.Update(car);
                     await _context.SaveChangesAsync();
-                    _context.GetService<ICached<Car>>().AddList("cachedCars");
-                    HttpContext.Session.SetList("cars", _context.Cars);
+                    IEnumerable<CarViewModel> carViewModel = GetOrder(_context.GetService<ICached<Car>>().GetList());
+                    HttpContext.Session.SetList("cars", carViewModel);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -178,7 +161,7 @@ namespace autorepairProj.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber");
             return View(car);
         }
 
@@ -209,8 +192,8 @@ namespace autorepairProj.Controllers
             var car = await _context.Cars.FindAsync(id);
             _context.Cars.Remove(car);
             await _context.SaveChangesAsync();
-            _context.GetService<ICached<Car>>().AddList("cachedCars");
-            HttpContext.Session.SetList("cars", _context.Cars);
+            IEnumerable<CarViewModel> carViewModel = GetOrder(_context.GetService<ICached<Car>>().GetList());
+            HttpContext.Session.SetList("cars", carViewModel);
             return RedirectToAction(nameof(Index));
         }
 
@@ -260,6 +243,27 @@ namespace autorepairProj.Controllers
         private bool CarExists(int id)
         {
             return _context.Cars.Any(e => e.CarId == id);
+        }
+
+        public IEnumerable<CarViewModel> GetOrder(IEnumerable<Car> cars)
+        {
+            IEnumerable<CarViewModel> carViewModel = from c in cars
+                                                     join owner in _context.Owners
+                                                     on c.OwnerId equals owner.OwnerId
+                                                     select new CarViewModel
+                                                     {
+                                                         CarId = c.CarId,
+                                                         Brand = c.Brand,
+                                                         Color = c.Color,
+                                                         Power = c.Power,
+                                                         StateNumber = c.StateNumber,
+                                                         OwnerFIO = owner.FirstName + " " + owner.MiddleName + " " + owner.LastName,
+                                                         Year = c.Year,
+                                                         VIN = c.VIN,
+                                                         EngineNumber = c.EngineNumber,
+                                                         AdmissionDate = c.AdmissionDate
+                                                     };
+            return carViewModel;
         }
     }
 }

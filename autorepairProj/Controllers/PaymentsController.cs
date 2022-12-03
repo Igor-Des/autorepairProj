@@ -49,20 +49,7 @@ namespace autorepairProj.Controllers
 
             if (reset == 1 || !HttpContext.Session.Keys.Contains("payments"))
             {
-                paymentViewModel = from p in cachedPayments.GetList("cachedPayments")
-                                   join c in _context.Cars
-                                   on p.CarId equals c.CarId
-                                   join m in _context.Mechanics
-                                   on p.MechanicId equals m.MechanicId
-                                   select new PaymentViewModel
-                                   {
-                                       PaymentId = p.PaymentId,
-                                       StateNumberCar = c.StateNumber,
-                                       MechanicFIO = m.FirstName + " " + m.MiddleName + " " + m.LastName,
-                                       Date = p.Date,
-                                       Cost = p.Cost,
-                                       ProgressReport = p.ProgressReport
-                                   };
+                paymentViewModel = GetOrder(cachedPayments.GetList());
                 HttpContext.Session.SetList("payments", paymentViewModel);
             }
             else
@@ -138,7 +125,10 @@ namespace autorepairProj.Controllers
                 _context.Add(payment);
                 await _context.SaveChangesAsync();
                 _context.GetService<ICached<Payment>>().AddList("cachedPayments");
-                HttpContext.Session.SetList("payments", _context.Payments);
+
+                IEnumerable<PaymentViewModel> paymentViewModel = GetOrder(_context.GetService<ICached<Payment>>().GetList());
+                HttpContext.Session.SetList("payments", paymentViewModel);
+
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "CarId", payment.CarId);
@@ -184,8 +174,9 @@ namespace autorepairProj.Controllers
                 {
                     _context.Update(payment);
                     await _context.SaveChangesAsync();
-                    _context.GetService<ICached<Payment>>().AddList("cachedPayments");
-                    HttpContext.Session.SetList("payments", _context.Payments);
+
+                    IEnumerable<PaymentViewModel> paymentViewModel = GetOrder(_context.GetService<ICached<Payment>>().GetList());
+                    HttpContext.Session.SetList("payments", paymentViewModel);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -246,8 +237,10 @@ namespace autorepairProj.Controllers
             var payment = await _context.Payments.FindAsync(id);
             _context.Payments.Remove(payment);
             await _context.SaveChangesAsync();
-            _context.GetService<ICached<Payment>>().AddList("cachedPayments");
-            HttpContext.Session.SetList("payments", _context.Payments);
+
+            IEnumerable<PaymentViewModel> paymentViewModel = GetOrder(_context.GetService<ICached<Payment>>().GetList());
+            HttpContext.Session.SetList("payments", paymentViewModel);
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -293,6 +286,25 @@ namespace autorepairProj.Controllers
         private bool PaymentExists(int id)
         {
             return _context.Payments.Any(e => e.PaymentId == id);
+        }
+
+        public IEnumerable<PaymentViewModel> GetOrder(IEnumerable<Payment> payments)
+        {
+            IEnumerable<PaymentViewModel> paymentViewModel = from p in payments
+                                                         join c in _context.Cars
+                                                         on p.CarId equals c.CarId
+                                                         join m in _context.Mechanics
+                                                         on p.MechanicId equals m.MechanicId
+                                                         select new PaymentViewModel
+                                                         {
+                                                             PaymentId = p.PaymentId,
+                                                             StateNumberCar = c.StateNumber,
+                                                             MechanicFIO = m.FirstName + " " + m.MiddleName + " " + m.LastName,
+                                                             Date = p.Date,
+                                                             Cost = p.Cost,
+                                                             ProgressReport = p.ProgressReport
+                                                         };
+            return paymentViewModel;
         }
     }
 }
