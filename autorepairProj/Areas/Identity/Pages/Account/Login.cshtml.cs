@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace autorepairProj.Areas.Identity.Pages.Account
 {
@@ -43,12 +44,14 @@ namespace autorepairProj.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "Введите корректный email")]
+            [Display(Name = "Email")]
+            [EmailAddress(ErrorMessage = "Email не является действительным адресом электронной почты")]
             public string Email { get; set; }
 
-            [Required]
-            [DataType(DataType.Password)]
+            [Required(ErrorMessage = "Пароль должен содержать прописные буквы, строчные буквы, цифры и не буквенно-цифровые символы")]
+            [DataType(DataType.Password)]            
+            [Display(Name = "Пароль")]
             public string Password { get; set; }
 
             [Display(Name = "Запомнить меня?")]
@@ -59,7 +62,7 @@ namespace autorepairProj.Areas.Identity.Pages.Account
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
             {
-                ModelState.AddModelError(string.Empty, ErrorMessage);
+                ModelState.AddModelError(string.Empty, "Заполните поля");
             }
 
             returnUrl ??= Url.Content("~/");
@@ -99,7 +102,7 @@ namespace autorepairProj.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Неверная попытка входа.");
+                    ModelState.AddModelError(string.Empty, "Произошла ошибка. Проверьте введенные данные");
                     return Page();
                 }
             }

@@ -46,20 +46,19 @@ namespace autorepairProj.Areas.Identity.Pages.Account
 
         public class InputModel
         {
-            [Required]
-            [EmailAddress]
+            [Required(ErrorMessage = "Введите корректный email")]
             [Display(Name = "Email")]
+            [EmailAddress(ErrorMessage = "Email не является действительным адресом электронной почты")]
             public string Email { get; set; }
 
-            [Required]
-            [StringLength(100, ErrorMessage = "{0} должно быть не менее {2} и не более {1} символов.", MinimumLength = 6)]
-            [DataType(DataType.Password)]
-            [Display(Name = "Пароль")]
+            [Required(ErrorMessage = "Пароль должен содержать прописные буквы, строчные буквы, цифры и не буквенно-цифровые символы")]
+            [DataType(DataType.Password)]            
+            [Display(Name = "Password")]
             public string Password { get; set; }
 
             [DataType(DataType.Password)]
-            [Display(Name = "Подтверждение пароля")]
-            [Compare("Пароль", ErrorMessage = "Пароли не совпадают")]
+            [Display(Name = "ConfirmPassword")]
+            [Compare("Password", ErrorMessage = "Пароли не совпадают")]
             public string ConfirmPassword { get; set; }
         }
 
@@ -101,7 +100,7 @@ namespace autorepairProj.Areas.Identity.Pages.Account
                         await _signInManager.SignInAsync(user, isPersistent: false);
                         return LocalRedirect(returnUrl);
                     }
-                }                
+                }
                 ModelState.AddModelError(string.Empty, "Произошла какая-то ошибка!\n Возможно Ваш пароль недостаточно сложен!");
             }
 
