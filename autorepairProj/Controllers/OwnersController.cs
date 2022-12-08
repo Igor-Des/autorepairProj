@@ -10,9 +10,12 @@ using autorepairProj.Models;
 using autorepairProj.Services;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using X.PagedList;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace autorepairProj.Controllers
 {
+    [Authorize]
     public class OwnersController : Controller
     {
         private readonly AutorepairContext _context;

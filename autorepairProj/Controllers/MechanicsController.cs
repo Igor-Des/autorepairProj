@@ -12,9 +12,12 @@ using autorepairProj.Services;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using autorepairProj.ViewModels;
 using autorepairProj.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace autorepairProj.Controllers
 {
+    [Authorize]
     public class MechanicsController : Controller
     {
         private readonly AutorepairContext _context;

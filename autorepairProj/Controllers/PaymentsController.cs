@@ -17,7 +17,7 @@ using System.Data;
 
 namespace autorepairProj.Controllers
 {
-    [Authorize(Roles = "admin, user")]
+    [Authorize]
     public class PaymentsController : Controller
     {
         private readonly AutorepairContext _context;

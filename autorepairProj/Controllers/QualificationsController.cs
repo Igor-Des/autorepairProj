@@ -11,9 +11,12 @@ using Microsoft.VisualBasic.FileIO;
 using autorepairProj.Services;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using X.PagedList;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
 
 namespace autorepairProj.Controllers
 {
+    [Authorize]
     public class QualificationsController : Controller
     {
         private readonly AutorepairContext _context;
