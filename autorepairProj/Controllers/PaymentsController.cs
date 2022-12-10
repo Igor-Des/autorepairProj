@@ -14,6 +14,7 @@ using X.PagedList;
 using autorepairProj.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
+using Microsoft.AspNetCore.Http;
 
 namespace autorepairProj.Controllers
 {
@@ -21,6 +22,8 @@ namespace autorepairProj.Controllers
     public class PaymentsController : Controller
     {
         private readonly AutorepairContext _context;
+        private string _currentSearchProgressReport = "searchProgressReport";
+        private string _currentSearchMechanicFIO = "searchMechanicFIO";
 
         public PaymentsController(AutorepairContext context)
         {
@@ -41,21 +44,23 @@ namespace autorepairProj.Controllers
                 searchProgressReport = currentFilter1;
                 searchMechanicFIO = currentFilter2;
             }
-
+            
             IEnumerable<PaymentViewModel> paymentViewModel;
-            ViewBag.CurrentFilter1 = searchProgressReport;
-            ViewBag.CurrentFilter2 = searchMechanicFIO;
             ICached<Payment> cachedPayments = _context.GetService<ICached<Payment>>();
 
             if (reset == 1 || !HttpContext.Session.Keys.Contains("payments"))
             {
                 paymentViewModel = GetOrder(cachedPayments.GetList());
                 HttpContext.Session.SetList("payments", paymentViewModel);
+                HttpContext.Session.Remove(_currentSearchProgressReport);
+                HttpContext.Session.Remove(_currentSearchMechanicFIO);
             }
             else
             {
                 paymentViewModel = HttpContext.Session.Get<IEnumerable<PaymentViewModel>>("payments");
-            }
+
+            }            
+
             paymentViewModel = _SearchProgressReport(_SearchMechanicFIO(paymentViewModel, searchMechanicFIO), searchProgressReport);
             ViewBag.CurrentSort = sortOrder;
             paymentViewModel = _Sort(paymentViewModel, sortOrder);
@@ -63,10 +68,15 @@ namespace autorepairProj.Controllers
             if (!HttpContext.Session.Keys.Contains("payments") || searchProgressReport != null || searchMechanicFIO != null)
             {
                 HttpContext.Session.SetList("payments", paymentViewModel);
+                HttpContext.Session.SetString(_currentSearchProgressReport, searchProgressReport ?? string.Empty);
+                HttpContext.Session.SetString(_currentSearchMechanicFIO, searchMechanicFIO ?? string.Empty);
             }
 
             int pageSize = 20;
             int pageNumber = page ?? 1;
+
+            ViewBag.CurrentFilter1 = HttpContext.Session.GetString(_currentSearchProgressReport);
+            ViewBag.CurrentFilter2 = HttpContext.Session.GetString(_currentSearchMechanicFIO);
 
             return View(paymentViewModel.ToPagedList(pageNumber, pageSize));
         }

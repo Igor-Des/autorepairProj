@@ -18,11 +18,11 @@
     <div style="display:flex;">
         <div style="margin-right: 15px;">
             <p>Введите выполненную работу: </p>
-            @Html.TextBox("searchProgressReport")
+            <input type="text" name="searchProgressReport" value="@ViewBag.CurrentFilter1?.ToString()" />
         </div>
         <div>
             <p>Введите ФИО механика:</p>
-            @Html.TextBox("searchMechanicFIO")
+            <input type="text" name="searchMechanicFIO" value="@ViewBag.CurrentFilter2?.ToString()" />
         </div>
     </div>
     <p style="margin-top: 15px;">
