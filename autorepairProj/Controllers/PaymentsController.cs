@@ -109,7 +109,13 @@ namespace autorepairProj.Controllers
         public IActionResult Create()
         {
             ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "StateNumber");
-            ViewData["MechanicId"] = new SelectList(_context.Mechanics, "MechanicId", "MiddleName");
+            ViewData["MechanicId"] = new SelectList(
+                _context.Mechanics.Select(m => new
+                {
+                    Id = m.MechanicId,
+                    FullName = m.FirstName + " " + m.MiddleName + " " + m.LastName
+                }),
+                "Id", "FullName");
             return View();
         }
 
@@ -131,8 +137,15 @@ namespace autorepairProj.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
+            
             ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "CarId", payment.CarId);
-            ViewData["MechanicId"] = new SelectList(_context.Mechanics, "MechanicId", "MechanicId", payment.MechanicId);
+            ViewData["MechanicId"] = new SelectList(
+                _context.Mechanics.Select(m => new
+                {
+                    Id = m.MechanicId,
+                    FullName = m.FirstName + " " + m.MiddleName + " " + m.LastName
+                }),
+                "Id", "FullName", payment.MechanicId);
             return View(payment);
         }
 
@@ -152,7 +165,13 @@ namespace autorepairProj.Controllers
                 return NotFound();
             }
             ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "StateNumber", payment.CarId);
-            ViewData["MechanicId"] = new SelectList(_context.Mechanics, "MechanicId", "MiddleName", payment.MechanicId);
+            ViewData["MechanicId"] = new SelectList(
+                _context.Mechanics.Select(m => new
+                {
+                    Id = m.MechanicId,
+                    FullName = m.FirstName + " " + m.MiddleName + " " + m.LastName
+                }),
+                "Id", "FullName", payment.MechanicId);
             return View(payment);
         }
 
@@ -192,7 +211,13 @@ namespace autorepairProj.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CarId"] = new SelectList(_context.Cars, "CarId", "CarId", payment.CarId);
-            ViewData["MechanicId"] = new SelectList(_context.Mechanics, "MechanicId", "MechanicId", payment.MechanicId);
+            ViewData["MechanicId"] = new SelectList(
+                _context.Mechanics.Select(m => new
+                {
+                    Id = m.MechanicId,
+                    FullName = m.FirstName + " " + m.MiddleName + " " + m.LastName
+                }),
+                "Id", "FullName", payment.MechanicId);
             return View(payment);
         }
 

@@ -14,6 +14,7 @@ using X.PagedList;
 using autorepairProj.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
+using System.Runtime.ConstrainedExecution;
 
 namespace autorepairProj.Controllers
 {
@@ -84,13 +85,26 @@ namespace autorepairProj.Controllers
                 return NotFound();
             }
 
+            ViewData["OwnerFIO"] = new SelectList(
+                _context.Owners.Select(own => new
+                {
+                    Id = own.OwnerId,
+                    FullName = own.FirstName + " " + own.MiddleName + " " + own.LastName
+                }),
+                "Id", "FullName", car.OwnerId);
             return View(car);
         }
 
         // GET: Cars/Create
         public IActionResult Create()
         {
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber");
+            ViewData["OwnerId"] = new SelectList(
+                _context.Owners.Select(own => new
+                {
+                    Id = own.OwnerId,
+                    FullName = own.FirstName + " " + own.MiddleName + " " + own.LastName + ", " + own.DriverLicenseNumber
+                }),
+                "Id", "FullName");
             return View();
         }
 
@@ -109,7 +123,13 @@ namespace autorepairProj.Controllers
                 HttpContext.Session.SetList("cars", carViewModel);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber", car.OwnerId);
+            ViewData["OwnerId"] = new SelectList(
+                _context.Owners.Select(own => new
+                {
+                    Id = own.OwnerId,
+                    FullName = own.FirstName + " " + own.MiddleName + " " + own.LastName + ", " + own.DriverLicenseNumber
+                }),
+                "Id", "FullName", car.OwnerId);
             return View(car);
         }
 
@@ -126,7 +146,13 @@ namespace autorepairProj.Controllers
             {
                 return NotFound();
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber");
+            ViewData["OwnerId"] = new SelectList(
+                _context.Owners.Select(own => new
+                {
+                    Id = own.OwnerId,
+                    FullName = own.FirstName + " " + own.MiddleName + " " + own.LastName + ", " + own.DriverLicenseNumber
+                }),
+                "Id", "FullName", car.OwnerId);
             return View(car);
         }
 
@@ -164,7 +190,13 @@ namespace autorepairProj.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["OwnerId"] = new SelectList(_context.Owners, "OwnerId", "DriverLicenseNumber");
+            ViewData["OwnerId"] = new SelectList(
+                _context.Owners.Select(own => new
+                {
+                    Id = own.OwnerId,
+                    FullName = own.FirstName + " " + own.MiddleName + " " + own.LastName + ", " + own.DriverLicenseNumber
+                }),
+                "Id", "FullName", car.OwnerId);
             return View(car);
         }
 
