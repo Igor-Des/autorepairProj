@@ -64,7 +64,7 @@ namespace autorepairProj.Controllers
                                           MiddleName = m.MiddleName,
                                           LastName = m.LastName,
                                           QualificationName = qual.Name,
-                                          Experience = m.Experience
+                                          Experience = (int)m.Experience
                                       };
             }
             mechanicViewModel = _SearchExperience(_SearchQualificationName(mechanicViewModel, searchQualificationName), searchExperience);

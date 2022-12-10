@@ -290,13 +290,13 @@ namespace autorepairProj.Controllers
                                                          CarId = c.CarId,
                                                          Brand = c.Brand,
                                                          Color = c.Color,
-                                                         Power = c.Power,
+                                                         Power = (int)c.Power,
                                                          StateNumber = c.StateNumber,
                                                          OwnerFIO = owner.FirstName + " " + owner.MiddleName + " " + owner.LastName,
-                                                         Year = c.Year,
+                                                         Year = (int)c.Year,
                                                          VIN = c.VIN,
                                                          EngineNumber = c.EngineNumber,
-                                                         AdmissionDate = c.AdmissionDate
+                                                         AdmissionDate = (DateTime)c.AdmissionDate
                                                      };
             return carViewModel;
         }

@@ -11,10 +11,13 @@ namespace autorepairProj.Models
         public int QualificationId { get; set; }
 
         [Display(Name = "Должность")]
+        [Required(ErrorMessage = "Не указана должность для механика")]
         public string Name { get; set; }
 
         [Display(Name = "Изначальная зарплата")]
-        public int Salary { get; set; }
+        [Required(ErrorMessage = "Не указана зарплата")]
+        [Range(1, 20000, ErrorMessage = "Некорректное значение зарплаты")]
+        public int? Salary { get; set; }
 
         public ICollection<Mechanic> Mechanics { get; set; }
 
