@@ -14,7 +14,7 @@ using X.PagedList;
 using autorepairProj.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
-using System.Runtime.ConstrainedExecution;
+using Microsoft.AspNetCore.Http;
 
 namespace autorepairProj.Controllers
 {
@@ -22,6 +22,8 @@ namespace autorepairProj.Controllers
     public class CarsController : Controller
     {
         private readonly AutorepairContext _context;
+        private string _currentSearchStateNumber = "searchStateNumber";
+        private string _currentSearchOwnerFIO = "searchOwnerFIO";
 
         public CarsController(AutorepairContext context)
         {
@@ -44,13 +46,14 @@ namespace autorepairProj.Controllers
             }
 
             IEnumerable<CarViewModel> carViewModel;
-            ViewBag.CurrentFilter1 = searchStateNumber;
-            ViewBag.CurrentFilter2 = searchOwnerFIO;
             ICached<Car> cachedCars = _context.GetService<ICached<Car>>();
+
             if (reset == 1 || !HttpContext.Session.Keys.Contains("cars"))
             {
                 carViewModel = GetOrder(cachedCars.GetList());
                 HttpContext.Session.SetList("cars", carViewModel);
+                HttpContext.Session.Remove(_currentSearchStateNumber);
+                HttpContext.Session.Remove(_currentSearchOwnerFIO);
             }
             else
             {
@@ -63,9 +66,15 @@ namespace autorepairProj.Controllers
             if (!HttpContext.Session.Keys.Contains("cars") || searchOwnerFIO != null || searchStateNumber != null)
             {
                 HttpContext.Session.SetList("cars", carViewModel);
+                HttpContext.Session.SetString(_currentSearchStateNumber, searchStateNumber ?? string.Empty);
+                HttpContext.Session.SetString(_currentSearchOwnerFIO, searchOwnerFIO ?? string.Empty);
             }
             int pageSize = 20;
             int pageNumber = page ?? 1;
+
+            ViewBag.CurrentFilter1 = HttpContext.Session.GetString(_currentSearchStateNumber);
+            ViewBag.CurrentFilter2 = HttpContext.Session.GetString(_currentSearchOwnerFIO);
+
             return View(carViewModel.ToPagedList(pageNumber, pageSize));
         }
 

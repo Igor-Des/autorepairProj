@@ -18,11 +18,11 @@
     <div style="display:flex;">
         <div style="margin-right: 15px;">
             <p>Введите гос номер авто: </p>
-            @Html.TextBox("searchStateNumber")
+            <input type="text" name="searchStateNumber" value="@ViewBag.CurrentFilter1?.ToString()" />
         </div>
         <div>
             <p>Введите ФИО владельца:</p>
-            @Html.TextBox("searchOwnerFIO")
+            <input type="text" name="searchOwnerFIO" value="@ViewBag.CurrentFilter2?.ToString()" />
         </div>
     </div>
     <p style="margin-top: 15px;">
