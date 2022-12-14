@@ -14,6 +14,8 @@ using autorepairProj.ViewModels;
 using autorepairProj.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
+using Microsoft.AspNetCore.Http;
+
 
 namespace autorepairProj.Controllers
 {
@@ -21,6 +23,8 @@ namespace autorepairProj.Controllers
     public class MechanicsController : Controller
     {
         private readonly AutorepairContext _context;
+        private string _currentSearchQualificationName = "searchQualificationName";
+        private string _currentSearchExperience = "searchExperience";
 
         public MechanicsController(AutorepairContext context)
         {
@@ -30,7 +34,7 @@ namespace autorepairProj.Controllers
         // GET: Mechanics
         [ResponseCache(Location = ResponseCacheLocation.Any, Duration = 258)]
         public ActionResult Index(SortState sortOrder, string currentFilter1,
-            string currentFilter2, string searchQualificationName, string searchExperience, int? page)
+            string currentFilter2, string searchQualificationName, string searchExperience, int? page, int? reset)
         {
             if (searchQualificationName != null || searchExperience != null || (searchQualificationName != null & searchExperience != null))
             {
@@ -43,35 +47,36 @@ namespace autorepairProj.Controllers
             }
 
             IEnumerable<MechanicViewModel> mechanicViewModel;
-            ViewBag.CurrentFilter1 = searchQualificationName;
-            ViewBag.CurrentFilter2 = searchExperience;
             ICached<Mechanic> cachedMechanics = _context.GetService<ICached<Mechanic>>();
 
-            if (HttpContext.Session.Keys.Contains("mechanics"))
+            if (reset == 1 || !HttpContext.Session.Keys.Contains("mechanics"))
             {
-                mechanicViewModel = HttpContext.Session.Get<IEnumerable<MechanicViewModel>>("mechanics");
+                mechanicViewModel = GetMechanic(cachedMechanics.GetList());
+                HttpContext.Session.SetList("mechanics", mechanicViewModel);
+                HttpContext.Session.Remove(_currentSearchQualificationName);
+                HttpContext.Session.Remove(_currentSearchExperience);
             }
             else
             {
-                List<Mechanic> mechanics = (List<Mechanic>)cachedMechanics.GetList("cachedMechanics");
-                mechanicViewModel = from m in mechanics
-                                      join qual in _context.Qualifications
-                                      on m.QualificationType equals qual.QualificationId                                      
-                                      select new MechanicViewModel
-                                      {
-                                          MechanicId = m.MechanicId,
-                                          FirstName = m.FirstName,
-                                          MiddleName = m.MiddleName,
-                                          LastName = m.LastName,
-                                          QualificationName = qual.Name,
-                                          Experience = (int)m.Experience
-                                      };
+                mechanicViewModel = HttpContext.Session.Get<IEnumerable<MechanicViewModel>>("mechanics");
             }
             mechanicViewModel = _SearchExperience(_SearchQualificationName(mechanicViewModel, searchQualificationName), searchExperience);
             ViewBag.CurrentSort = sortOrder;
             mechanicViewModel = _Sort(mechanicViewModel, sortOrder);
+
+            if (!HttpContext.Session.Keys.Contains("mechanics") || searchQualificationName != null || searchExperience != null)
+            {
+                HttpContext.Session.SetList("mechanics", mechanicViewModel);
+                HttpContext.Session.SetString(_currentSearchQualificationName, searchQualificationName ?? string.Empty);
+                HttpContext.Session.SetString(_currentSearchExperience, searchExperience ?? string.Empty);
+            }
+
             int pageSize = 20;
             int pageNumber = page ?? 1;
+
+            ViewBag.CurrentFilter1 = HttpContext.Session.GetString(_currentSearchQualificationName);
+            ViewBag.CurrentFilter2 = HttpContext.Session.GetString(_currentSearchExperience);
+
             return View(mechanicViewModel.ToPagedList(pageNumber, pageSize));
         }
 
@@ -244,6 +249,23 @@ namespace autorepairProj.Controllers
         private bool MechanicExists(int id)
         {
             return _context.Mechanics.Any(e => e.MechanicId == id);
+        }
+
+        public IEnumerable<MechanicViewModel> GetMechanic(IEnumerable<Mechanic> mechanics)
+        {
+            IEnumerable<MechanicViewModel> mechanicViewModel = from m in mechanics
+                                                          join qual in _context.Qualifications
+                                                          on m.QualificationType equals qual.QualificationId
+                                                          select new MechanicViewModel
+                                                          {
+                                                              MechanicId = m.MechanicId,
+                                                              FirstName = m.FirstName,
+                                                              MiddleName = m.MiddleName,
+                                                              LastName = m.LastName,
+                                                              QualificationName = qual.Name,
+                                                              Experience = (int)m.Experience
+                                                          };
+            return mechanicViewModel;
         }
     }
 }

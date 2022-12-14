@@ -16,13 +16,15 @@
     <div style="display:flex;">
         <div style="margin-right: 15px;">
             <p>Введите должность: </p>
-            @Html.TextBox("searchQualificationName")
+            <input type="text" name="searchQualificationName" value="@ViewBag.CurrentFilter1?.ToString()" />
         </div>
         <div>
             <p>Введите опыт работы:</p>
-            @Html.TextBox("searchExperience")
+            <input type="text" name="searchExperience" value="@ViewBag.CurrentFilter2?.ToString()" />
         </div>
     </div>
+
+
     <p style="margin-top: 15px;">
         <input type="submit" value="Отправить" />
         <a class="alink-reset" asp-action="Index" asp-route-reset="1">
